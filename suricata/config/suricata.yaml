@@ -1,0 +1,76 @@
+%YAML 1.1
+---
+# Minimal Suricata configuration
+
+# Network variables
+vars:
+  address-groups:
+    HOME_NET: "[192.168.0.0/16,10.0.0.0/8,172.16.0.0/12]"
+    EXTERNAL_NET: "any"
+    
+  port-groups:
+    HTTP_PORTS: "80"
+
+# Output configuration
+outputs:
+  # Fast alerts log
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+  
+  # Eve log (JSON format)
+  - eve-log:
+      enabled: yes
+      type: file
+      filename: eve.json
+      rotate-interval: 1h
+      pcap-file: false
+      
+      # What to log
+      types:
+        - alert:
+            tagged-packets: yes
+            metadata: yes
+
+# Default rule path (where Suricata looks for rules)
+default-rule-path: /var/lib/suricata/rules
+
+# Rule files to load
+rule-files:
+  - local.rules
+
+# Run mode - автоопределение процессоров
+runmode: workers
+
+# Capture configuration
+af-packet:
+  - interface: eth0
+    threads: auto
+    cluster-id: 99
+    cluster-type: cluster_flow
+    use-mmap: yes
+    defrag: yes
+
+# Detection settings
+detect-engine:
+  - profile: medium
+
+# Stream/reassembly settings
+stream:
+  memcap: 64mb
+  checksum-validation: no
+
+# App layer protocols
+app-layer:
+  protocols:
+    http:
+      enabled: yes
+    dns:
+      enabled: yes
+    tls:
+      enabled: yes
+      encryption: inspecting
+      
+# Performance tuning for low resource
+max-pending-packets: 1024

