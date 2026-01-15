@@ -208,11 +208,6 @@ def generate_report(results: dict, output_file: str = None) -> str:
         str: Текст отчёта
     """
     report = f"""
-╔═══════════════════════════════════════════════════════════════╗
-║           ОТЧЁТ О РЕЗУЛЬТАТАХ ТЕСТИРОВАНИЯ                    ║
-║           Smart Payload Splitter                              ║
-╚═══════════════════════════════════════════════════════════════╝
-
 Дата и время: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
 
 ОБЩАЯ ИНФОРМАЦИЯ:
@@ -242,11 +237,8 @@ Session ID: {results.get('session_id', 'N/A')}
     report += "------------------\n"
     
     for frag_info in results.get('fragments_info', []):
-        status_icon = "✓" if frag_info.get('status') == 'success' else "✗"
-        report += f"{status_icon} Фрагмент #{frag_info.get('index', 'N/A')}: "
+        report += f"Фрагмент #{frag_info.get('index', 'N/A')}: "
         report += f"{frag_info.get('size', 0)} байт - {frag_info.get('status', 'unknown')}\n"
-    
-    report += "\n" + "=" * 63 + "\n"
     
     if output_file:
         with open(output_file, 'w', encoding='utf-8') as f:
